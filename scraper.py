@@ -58,31 +58,32 @@ def main():
         # Create a simple "screenshot" placeholder
         screenshot_path = f"screenshots/page-{result['job_id']}.txt"
         with open(screenshot_path, 'w') as f:
-            f.write(f"Simple scraping result for: {target_url}\n")
-            f.write(f"Title: {title}\n")
+            f.write(f"Screenshot placeholder for {target_url}\n")
+            f.write(f"Captured at: {datetime.now().isoformat()}\n")
+            f.write(f"Status: {response.status_code}\n")
             f.write(f"Content length: {len(content)} characters\n")
-            f.write(f"Status code: {response.status_code}\n")
         
-        print(f"📄 Content saved: {screenshot_path}")
+        print(f"📸 Screenshot placeholder saved: {screenshot_path}")
         
         # Update result
         result.update({
             "status": "completed",
             "data": {
                 "title": title,
-                "content_length": len(content),
                 "status_code": response.status_code,
-                "content_preview": content[:200] + "..." if len(content) > 200 else content,
-                "screenshot": screenshot_path
+                "content_length": len(content),
+                "text_preview": content[:500] + "..." if len(content) > 500 else content,
+                "screenshot": screenshot_path,
+                "extraction_method": "simple_http_request"
             },
             "metrics": {
-                "load_time": "< 5s",
+                "load_time": "< 30s",
                 "success_rate": 1.0,
-                "extraction_method": "simple_http_request"
+                "method": "requests_library"
             }
         })
         
-        print("✅ Scraping completed successfully")
+        print("✅ Content extraction completed successfully")
         
     except Exception as e:
         print(f"❌ Scraping failed: {e}")
