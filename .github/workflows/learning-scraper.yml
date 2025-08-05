@@ -17,10 +17,11 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -28,10 +29,20 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
     
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
-        pip install playwright beautifulsoup4 httpx python-dotenv requests
-        playwright install chromium --with-deps
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+        playwright install-deps
+    
+    - name: Create directories
+      run: |
+        mkdir -p screenshots
+        mkdir -p logs
     
     - name: Run learning scraper
       env:
@@ -40,14 +51,8 @@ jobs:
         TARGET_URL: ${{ github.event.client_payload.url || github.event.inputs.url }}
         PRIORITY: ${{ github.event.client_payload.priority || github.event.inputs.priority }}
       run: |
+        echo "🧠 Starting Sensory Neurons..."
+        echo "Target URL: $TARGET_URL"
+        echo "Hub URL: $SYNAPSE_HUB_URL"
         python scraper.py
-    
-    - name: Upload results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: scraping-results-${{ github.run_id }}
-        path: |
-          screenshots/
-          results.json
-        retention-days: 3
+        echo "
