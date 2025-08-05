@@ -17,7 +17,7 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     
     steps:
     - name: Checkout code
@@ -27,51 +27,31 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        # Removed cache: 'pip' to avoid requirements.txt issues
     
-    - name: Install dependencies directly
+    - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install playwright==1.40.0 beautifulsoup4==4.12.2 httpx==0.25.2 python-dotenv==1.0.0 requests==2.31.0
-    
-    - name: Install Playwright browsers
-      run: |
-        playwright install chromium
-        playwright install-deps
+        pip install requests beautifulsoup4 python-dotenv
     
     - name: Create directories
       run: |
         mkdir -p screenshots
         mkdir -p logs
     
-    - name: Debug environment
-      run: |
-        echo "🔍 Environment check:"
-        echo "Python version: $(python --version)"
-        echo "Current directory: $(pwd)"
-        echo "Files in repo: $(ls -la)"
-        echo "TARGET_URL: ${{ github.event.client_payload.url || github.event.inputs.url }}"
-    
-    - name: Run learning scraper
+    - name: Run reliable scraper
       env:
         SYNAPSE_HUB_URL: ${{ secrets.SYNAPSE_HUB_URL }}
         SENSORY_API_KEY: ${{ secrets.SENSORY_API_KEY }}
         TARGET_URL: ${{ github.event.client_payload.url || github.event.inputs.url }}
         PRIORITY: ${{ github.event.client_payload.priority || github.event.inputs.priority }}
       run: |
-        echo "🧠 Starting Sensory Neurons..."
-        echo "Target URL: $TARGET_URL"
-        echo "Hub URL: $SYNAPSE_HUB_URL"
+        echo "🧠 Starting Reliable Sensory Neurons..."
         python scraper.py
         echo "✅ Scraper completed"
-    
-    - name: Check created files
-      if: always()
-      run: |
-        echo "📁 Checking created files:"
-        ls -la
-        ls -la screenshots/ || echo "No screenshots directory"
-        cat results.json || echo "No results.json file"
+        
+        echo "📁 Files created:"
+        ls -la screenshots/
+        ls -la results.json
     
     - name: Upload results
       if: always()
@@ -81,5 +61,6 @@ jobs:
         path: |
           screenshots/
           results.json
+          logs/
         retention-days: 3
         if-no-files-found: warn
